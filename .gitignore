@@ -3,3 +3,20 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Dev/asset processing scripts
+chroma.py
+clean_bg.py
+copy_assets.py
+process_chest.py
+process_houses.py
+process_woods.py
+remove_bg.js
+remove_bg.py
+
+# AI tool files
+.claude/
+.claude.json
+.antigravity/
+.cursor/
+.copilot/
