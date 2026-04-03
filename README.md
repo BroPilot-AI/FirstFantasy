@@ -2,6 +2,8 @@
 
 A cyberpunk pixel-art RPG built with vanilla JavaScript. Battle the Giant Orange Taco threatening the neon city — gather your party, explore the town, fight enemies, and gear up at shops and clinics.
 
+[![Play Now](https://img.shields.io/badge/Play%20Now-CyberTaco%20RPG-ff00ff?style=for-the-badge&logo=googlechrome&logoColor=white)](https://raw.githack.com/BroPilot-AI/FirstFantasy/main/index.html)
+
 ## Features
 
 - Turn-based combat system with party management
