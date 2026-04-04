@@ -67,8 +67,10 @@ export class BattleScene {
 
     stop() {
         if(this.activeUnitTimer) clearTimeout(this.activeUnitTimer);
-        document.getElementById('battle-log').innerHTML = '';
+        const log = document.getElementById('battle-log');
+        if (log) log.innerHTML = '';
         this.resetMenus();
+        audio.stopBGM();
     }
 
     getAllUnits() {
@@ -278,7 +280,11 @@ export class BattleScene {
                 this.logMessage("Can't run from Boss!", "damage");
             } else {
                 this.logMessage("Got away safely!", "action");
-                setTimeout(() => sceneManager.changeScene('dungeon', { returningFromBattle: true, pos: this.dungeonPos }), 1000);
+                if (this.forestPos) {
+                    setTimeout(() => sceneManager.changeScene('forest', { returningFromBattle: true, x: this.forestPos.x, y: this.forestPos.y }), 1000);
+                } else {
+                    setTimeout(() => sceneManager.changeScene('dungeon', { returningFromBattle: true, pos: this.dungeonPos }), 1000);
+                }
             }
         };
     }

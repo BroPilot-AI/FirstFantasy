@@ -46,8 +46,8 @@ export class ForestScene extends GridScene {
             this.buildings.push({ x: 3, y: 5, w: 1, h: 1, id: 'forest_chest', sprite: 'assets/cyber_chest.png' });
         }
 
-        // Signpost
-        this.buildings.push({ x: 9, y: 6, w: 1, h: 1, id: 'signpost', sprite: 'assets/neon_sign.png' });
+        // Signpost (off the central path)
+        this.buildings.push({ x: 12, y: 6, w: 1, h: 1, id: 'signpost', sprite: 'assets/neon_sign.png' });
 
         // Position player
         if (params && params.from === 'worldMap') {
@@ -95,33 +95,26 @@ export class ForestScene extends GridScene {
 
     onInteract(target) {
         if (target.id === 'campfire') {
-            if (!gameState.forestCampUsed) {
-                gameState.forestCampUsed = true;
-                gameState.party.forEach(c => {
-                    if (c.hp > 0) {
-                        c.hp = Math.min(c.maxHp, c.hp + Math.floor(c.maxHp * 0.3));
-                        c.mp = Math.min(c.maxMp, c.mp + Math.floor(c.maxMp * 0.3));
-                    }
-                });
-                this.showOverlay("CAMPFIRE", "You rest by the warm glow. Party recovered 30% HP and MP.");
-                this.buildings = this.buildings.filter(b => b.id !== 'campfire');
-                const domNode = Array.from(this.gridContainer.children).find(child => child.innerHTML && child.innerHTML.includes('campfire'));
-                if (domNode) domNode.remove();
-            } else {
-                this.showOverlay("CAMPFIRE", "The embers are cold. Nothing left to recover here.");
-            }
+            gameState.forestCampUsed = true;
+            gameState.party.forEach(c => {
+                if (c.hp > 0) {
+                    c.hp = Math.min(c.maxHp, c.hp + Math.floor(c.maxHp * 0.3));
+                    c.mp = Math.min(c.maxMp, c.mp + Math.floor(c.maxMp * 0.3));
+                }
+            });
+            this.showOverlay("CAMPFIRE", "You rest by the warm glow. Party recovered 30% HP and MP.");
+            this.buildings = this.buildings.filter(b => b.id !== 'campfire');
+            const domNode = this.gridContainer.querySelector('[data-building-id="campfire"]');
+            if (domNode) domNode.remove();
         } else if (target.id === 'forest_chest') {
-            if (!gameState.forestChestOpened) {
-                gameState.forestChestOpened = true;
-                gameState.credits += 200;
-                // Add extra potion
-                const potion = gameState.inventory.consumables.find(c => c.id === 'potion');
-                if (potion) potion.amount += 2;
-                this.showOverlay("HIDDEN CACHE", "Found 200 Credits and 2 Cyber-Potions!");
-                this.buildings = this.buildings.filter(b => b.id !== 'forest_chest');
-                const domNode = Array.from(this.gridContainer.children).find(child => child.innerHTML && child.innerHTML.includes('forest_chest'));
-                if (domNode) domNode.remove();
-            }
+            gameState.forestChestOpened = true;
+            gameState.credits += 200;
+            const potion = gameState.inventory.consumables.find(c => c.id === 'potion');
+            if (potion) potion.amount += 2;
+            this.showOverlay("HIDDEN CACHE", "Found 200 Credits and 2 Cyber-Potions!");
+            this.buildings = this.buildings.filter(b => b.id !== 'forest_chest');
+            const domNode = this.gridContainer.querySelector('[data-building-id="forest_chest"]');
+            if (domNode) domNode.remove();
         } else if (target.id === 'signpost') {
             this.showOverlay("FOREST SIGN", "DANGER: Corrupted data entities ahead. North leads to the Tech-Dungeon. South leads back to the World Map.");
         }

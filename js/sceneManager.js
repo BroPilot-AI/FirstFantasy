@@ -61,6 +61,8 @@ class SceneManager {
             document.getElementById(`${this.currentScene.name}-scene`).classList.remove('active');
         }
 
+        document.getElementById('ui-layer').innerHTML = '';
+
         const nextScene = this.scenes[sceneName];
         if (nextScene) {
             nextScene.name = sceneName;

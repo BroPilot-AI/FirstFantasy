@@ -28,8 +28,9 @@ window.addEventListener('DOMContentLoaded', () => {
         gameState.init();
         sceneManager.init();
         
-        if (!gameState.tutorialSeen) {
+        if (!gameState.tutorialSeen && !localStorage.getItem('cybertaco_tutorial')) {
             gameState.tutorialSeen = true;
+            localStorage.setItem('cybertaco_tutorial', 'seen');
             setTimeout(() => {
                 const tutOverlay = document.getElementById('overlay');
                 document.getElementById('overlay-title').innerText = "HOW TO PLAY";
@@ -45,6 +46,23 @@ window.addEventListener('DOMContentLoaded', () => {
         }
         
         sceneManager.changeScene('town');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const debugMode = urlParams.get('debug');
+        if (debugMode === 'battle') {
+            setTimeout(() => sceneManager.changeScene('battle', { isBoss: false }), 500);
+        } else if (debugMode === 'boss') {
+            setTimeout(() => sceneManager.changeScene('battle', { isBoss: true }), 500);
+        }
+        
+        window.__testHelpers = {
+            triggerBattle: (isBoss = false) => {
+                sceneManager.changeScene('battle', { isBoss });
+            },
+            getSceneManager: () => sceneManager,
+            getGameState: () => gameState
+        };
+        
         overlayBtn.removeEventListener('click', startFn);
     };
 

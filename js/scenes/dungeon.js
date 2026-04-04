@@ -82,7 +82,7 @@ export class DungeonScene extends GridScene {
 
     interactNpc() {
         audio.playWinSound();
-        const boss = this.enemies || this.getBossStats();
+        const boss = this.getBossStats();
         const conf = confirm(`Engage the Giant Orange Taco Boss?\n\nHP: ${boss.hp} | ATK: ${boss.attack} | DEF: ${boss.defense}\nAbilities: ${boss.abilities}`);
         if (conf) {
             sceneManager.changeScene('battle', { isBoss: true });

@@ -140,6 +140,7 @@ export class GridScene {
             this.buildings.forEach(b => {
                 const obs = document.createElement('div');
                 obs.className = 'building-sprite';
+                obs.dataset.buildingId = b.id;
                 obs.style.left = `${b.x * this.cellSize}px`;
                 obs.style.top = `${b.y * this.cellSize}px`;
                 obs.style.width = `${b.w * this.cellSize}px`;

@@ -66,8 +66,7 @@ export class WorldMapScene extends GridScene {
                 this.showOverlay("SUPPLY CRATE", "You cracked open the crate and found 500 Credits!");
                 // Remove chest visually from array
                 this.buildings = this.buildings.filter(b => b.id !== 'world_chest');
-                // Remove without triggering total scene wipe
-                const domNode = Array.from(this.gridContainer.children).find(child => child.innerHTML && child.innerHTML.includes('cyber_chest.png'));
+                const domNode = this.gridContainer.querySelector('[data-building-id="world_chest"]');
                 if (domNode) domNode.remove();
             }
         }
