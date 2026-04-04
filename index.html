@@ -9,12 +9,12 @@
 <body>
     <div id="game-container">
         <!-- Scenes will be injected here -->
-        <div id="scene-container"></div>
+        <div id="scene-container" data-testid="scene-container"></div>
         <div id="ui-layer">
             <div id="overlay" class="overlay-message">
-                <h2 id="overlay-title">Title</h2>
-                <p id="overlay-text">Text here</p>
-                <button id="overlay-btn" class="cyber-btn">Continue</button>
+                <h2 id="overlay-title" data-testid="overlay-title">Title</h2>
+                <p id="overlay-text" data-testid="overlay-text">Text here</p>
+                <button id="overlay-btn" class="cyber-btn" data-testid="overlay-btn">Continue</button>
             </div>
         </div>
     </div>

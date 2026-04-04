@@ -12,10 +12,10 @@ export class MenuScene {
     init(el) {
         this.el = el;
         this.el.innerHTML = `
-            <div id="pause-menu" style="width:100%; height:100%; background:rgba(13, 2, 33, 0.95); border:3px solid var(--neon-purple); display:flex; flex-direction:row; padding:20px; box-sizing:border-box; color:var(--text-color); position:relative;">
+            <div id="pause-menu" data-testid="pause-menu" style="width:100%; height:100%; background:rgba(13, 2, 33, 0.95); border:3px solid var(--neon-purple); display:flex; flex-direction:row; padding:20px; box-sizing:border-box; color:var(--text-color); position:relative;">
                 
                 <!-- Left Panel: Characters -->
-                <div style="flex:1; border-right:2px solid var(--neon-blue); padding-right:20px; display:flex; flex-direction:column; overflow-y:auto;" id="menu-party-container">
+                <div style="flex:1; border-right:2px solid var(--neon-blue); padding-right:20px; display:flex; flex-direction:column; overflow-y:auto;" id="menu-party-container" data-testid="menu-party-container">
                     <!-- Injected via updateUI -->
                 </div>
 
@@ -23,20 +23,20 @@ export class MenuScene {
                 <div style="flex:1; padding-left:20px; display:flex; flex-direction:column;">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:10px;">
                         <h2 style="margin:0; color:var(--neon-pink);">SYSTEM MENU</h2>
-                        <div style="color:yellow; font-weight:bold;">Credits: <span id="menu-credits">0</span></div>
+                        <div style="color:yellow; font-weight:bold;">Credits: <span id="menu-credits" data-testid="menu-credits">0</span></div>
                     </div>
                     
                     <div style="display:flex; gap:10px; margin-bottom:15px;">
-                        <button class="cyber-btn" id="tab-consumables" style="flex:1; font-size:12px;">Consumables</button>
-                        <button class="cyber-btn" id="tab-gear" style="flex:1; font-size:12px;">Gear</button>
-                        <button class="cyber-btn" id="tab-skills" style="flex:1; font-size:12px;">Skills</button>
+                        <button class="cyber-btn" id="tab-consumables" data-testid="tab-consumables" style="flex:1; font-size:12px;">Consumables</button>
+                        <button class="cyber-btn" id="tab-gear" data-testid="tab-gear" style="flex:1; font-size:12px;">Gear</button>
+                        <button class="cyber-btn" id="tab-skills" data-testid="tab-skills" style="flex:1; font-size:12px;">Skills</button>
                     </div>
 
-                    <div id="menu-inventory-container" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:10px;">
+                    <div id="menu-inventory-container" data-testid="menu-inventory-container" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:10px;">
                         <!-- Injected via updateUI -->
                     </div>
 
-                    <button class="cyber-btn" id="btn-close-menu" style="margin-top:20px;">[ESC] Close Menu</button>
+                    <button class="cyber-btn" id="btn-close-menu" data-testid="btn-close-menu" style="margin-top:20px;">[ESC] Close Menu</button>
                 </div>
             </div>
         `;
@@ -102,7 +102,7 @@ export class MenuScene {
         document.getElementById('menu-credits').innerText = gameState.credits;
         
         const mapHTML = gameState.party.map((c, i) => `
-            <div style="border:1px solid ${this.selectedCharacterIndex === i ? 'white' : '#333'}; box-shadow:${this.selectedCharacterIndex === i ? '0 0 10px white' : 'none'}; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.5); cursor:pointer; transition:all 0.2s ease;" onclick="javascript:document.dispatchEvent(new CustomEvent('menu-select-char', {detail: ${i}}))">
+            <div class="menu-character-card" data-testid="menu-char-card-${i}" style="border:1px solid ${this.selectedCharacterIndex === i ? 'white' : '#333'}; box-shadow:${this.selectedCharacterIndex === i ? '0 0 10px white' : 'none'}; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.5); cursor:pointer; transition:all 0.2s ease;" onclick="javascript:document.dispatchEvent(new CustomEvent('menu-select-char', {detail: ${i}}))">
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:5px; margin-bottom:5px;">
                     <div style="font-weight:bold; color:var(--neon-blue); font-size:18px;">${c.name}</div>
                     <div style="color:yellow; font-size:14px;">Lv.${c.level}</div>

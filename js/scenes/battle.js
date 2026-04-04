@@ -14,26 +14,26 @@ export class BattleScene {
     init(el) {
         this.el = el;
         this.el.innerHTML = `
-            <div class="battle-top">
-                <div class="party-container" id="party-container"></div>
-                <div class="enemy-container" id="enemy-container"></div>
+            <div class="battle-top" data-testid="battle-top">
+                <div class="party-container" id="party-container" data-testid="party-container"></div>
+                <div class="enemy-container" id="enemy-container" data-testid="enemy-container"></div>
             </div>
-            <div class="battle-bottom">
+            <div class="battle-bottom" data-testid="battle-bottom">
                 <div class="battle-menu-container">
-                    <div class="battle-menu" id="main-menu">
-                        <button class="cyber-btn" id="btn-attack">Attack</button>
-                        <button class="cyber-btn" id="btn-ability">Ability</button>
-                        <button class="cyber-btn" id="btn-defend">Defend</button>
-                        <button class="cyber-btn" id="btn-run">Run</button>
+                    <div class="battle-menu" id="main-menu" data-testid="battle-main-menu">
+                        <button class="cyber-btn" id="btn-attack" data-testid="btn-attack">Attack</button>
+                        <button class="cyber-btn" id="btn-ability" data-testid="btn-ability">Ability</button>
+                        <button class="cyber-btn" id="btn-defend" data-testid="btn-defend">Defend</button>
+                        <button class="cyber-btn" id="btn-run" data-testid="btn-run">Run</button>
                     </div>
-                    <div class="battle-menu" id="ability-menu" style="display:none;">
+                    <div class="battle-menu" id="ability-menu" data-testid="battle-ability-menu" style="display:none;">
                         <!-- Abilities injected here -->
                     </div>
-                    <div class="battle-menu" id="target-menu" style="display:none;">
+                    <div class="battle-menu" id="target-menu" data-testid="battle-target-menu" style="display:none;">
                         <!-- Targets injected here -->
                     </div>
                 </div>
-                <div class="battle-log" id="battle-log"></div>
+                <div class="battle-log" id="battle-log" data-testid="battle-log"></div>
             </div>
         `;
     }

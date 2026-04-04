@@ -17,20 +17,20 @@ export class ShopScene {
     init(el) {
         this.el = el;
         this.el.innerHTML = `
-            <div id="shop-scene" style="width:100%;height:100%;display:flex;flex-direction:row;background:#0d0221;color:white;padding:20px;box-sizing:border-box;">
+            <div id="shop-scene" data-testid="shop-scene" style="width:100%;height:100%;display:flex;flex-direction:row;background:#0d0221;color:white;padding:20px;box-sizing:border-box;">
                 <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; border-right:2px solid var(--neon-blue); padding-right:20px;">
                     <img src="assets/cyber_merchant_1775236635886.png" style="width:200px; height:200px; border:2px solid var(--neon-blue); border-radius:10px; margin-bottom:20px; object-fit:cover;">
                     <div style="color:var(--neon-blue); font-size:20px; text-transform:uppercase; margin-bottom:10px;">Merchant</div>
-                    <p id="shop-dialogue" style="text-align:center; font-style:italic;">"Welcome to my node! We've got gear and supplies. Take a look!"</p>
+                    <p id="shop-dialogue" data-testid="shop-dialogue" style="text-align:center; font-style:italic;">"Welcome to my node! We've got gear and supplies. Take a look!"</p>
                 </div>
                 <div style="flex:1.5; padding-left:20px; display:flex; flex-direction:column; justify-content:flex-start;">
                     <div style="font-size:24px; color:var(--neon-blue); margin-bottom:20px; display:flex; justify-content:space-between;">
                         <span>Shop Inventory</span>
-                        <span>Cr: <span id="shop-credits">0</span></span>
+                        <span>Cr: <span id="shop-credits" data-testid="shop-credits">0</span></span>
                     </div>
-                    <div id="shop-items" style="display:flex; flex-direction:column; gap:10px; overflow-y:auto; flex:1; padding-right:10px;">
+                    <div id="shop-items" data-testid="shop-items" style="display:flex; flex-direction:column; gap:10px; overflow-y:auto; flex:1; padding-right:10px;">
                     </div>
-                    <button class="cyber-btn" id="btn-leave-shop" style="margin-top:20px; font-size:18px;">Leave Shop</button>
+                    <button class="cyber-btn" id="btn-leave-shop" data-testid="btn-leave-shop" style="margin-top:20px; font-size:18px;">Leave Shop</button>
                 </div>
             </div>
         `;
