@@ -107,6 +107,7 @@ class AudioManager {
     }
 
     stopBGM() {
+        if (!this.initialized) return;
         if (this._currentBGM) {
             try { this._currentBGM.stop(); } catch(e) {}
             this._currentBGM = null;

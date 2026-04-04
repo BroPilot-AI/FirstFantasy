@@ -71,6 +71,9 @@ export class BattleScene {
         if (log) log.innerHTML = '';
         this.resetMenus();
         audio.stopBGM();
+        // Clear the scene DOM to prevent duplicate elements on re-entry
+        if (this.el) this.el.innerHTML = '';
+        this.init(this.el);
     }
 
     getAllUnits() {
@@ -396,10 +399,14 @@ export class BattleScene {
     }
 
     resetMenus() {
-        document.getElementById('main-menu').style.display = 'flex';
-        document.getElementById('ability-menu').style.display = 'none';
-        document.getElementById('target-menu').style.display = 'none';
-        document.getElementById('item-menu').style.display = 'none';
+        const mainMenu = document.getElementById('main-menu');
+        if (mainMenu) mainMenu.style.display = 'flex';
+        const abilityMenu = document.getElementById('ability-menu');
+        if (abilityMenu) abilityMenu.style.display = 'none';
+        const targetMenu = document.getElementById('target-menu');
+        if (targetMenu) targetMenu.style.display = 'none';
+        const itemMenu = document.getElementById('item-menu');
+        if (itemMenu) itemMenu.style.display = 'none';
         document.querySelectorAll('.cyber-btn').forEach(b => b.disabled = false);
     }
 

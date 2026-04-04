@@ -17,7 +17,7 @@ export class ShopScene {
     init(el) {
         this.el = el;
         this.el.innerHTML = `
-            <div id="shop-scene" data-testid="shop-scene" style="width:100%;height:100%;display:flex;flex-direction:row;background:#0d0221;color:white;padding:20px;box-sizing:border-box;">
+            <div style="width:100%;height:100%;display:flex;flex-direction:row;background:#0d0221;color:white;padding:20px;box-sizing:border-box;">
                 <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; border-right:2px solid var(--neon-blue); padding-right:20px;">
                     <img src="assets/cyber_merchant_1775236635886.png" style="width:200px; height:200px; border:2px solid var(--neon-blue); border-radius:10px; margin-bottom:20px; object-fit:cover;">
                     <div style="color:var(--neon-blue); font-size:20px; text-transform:uppercase; margin-bottom:10px;">Merchant</div>
@@ -45,7 +45,10 @@ export class ShopScene {
         };
     }
 
-    stop() {}
+    stop() {
+        if (this.el) this.el.innerHTML = '';
+        this.init(this.el);
+    }
 
     buyItem(item) {
         if (gameState.credits >= item.cost) {

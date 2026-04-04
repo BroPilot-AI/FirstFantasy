@@ -4,10 +4,11 @@ test.describe('Menu Flow', () => {
   test.beforeEach(async ({ gamePage }) => {
     await gamePage.startGame();
     await gamePage.waitForSceneChange('town-scene');
-    await gamePage.page.waitForTimeout(1000);
+    await gamePage.page.waitForTimeout(1500);
     if (await gamePage.isOverlayVisible()) {
       await gamePage.dismissOverlay();
     }
+    await gamePage.page.waitForTimeout(300);
   });
 
   test('should open menu with I key', async ({ menuPage }) => {
@@ -24,7 +25,7 @@ test.describe('Menu Flow', () => {
   test('should show party info in menu', async ({ menuPage }) => {
     await menuPage.open();
     await expect(menuPage.partyContainer).toBeVisible();
-    const charCards = menuPage.page.locator('[data-testid^="menu-char-card-"]');
+    const charCards = menuPage.page.locator('#menu-scene.scene.active [data-testid^="menu-char-card-"]');
     expect(await charCards.count()).toBe(3);
   });
 

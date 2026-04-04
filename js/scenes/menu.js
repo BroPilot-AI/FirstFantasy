@@ -12,7 +12,7 @@ export class MenuScene {
     init(el) {
         this.el = el;
         this.el.innerHTML = `
-            <div id="pause-menu" data-testid="pause-menu" style="width:100%; height:100%; background:rgba(13, 2, 33, 0.95); border:3px solid var(--neon-purple); display:flex; flex-direction:row; padding:20px; box-sizing:border-box; color:var(--text-color); position:relative;">
+            <div data-testid="pause-menu" style="width:100%; height:100%; background:rgba(13, 2, 33, 0.95); border:3px solid var(--neon-purple); display:flex; flex-direction:row; padding:20px; box-sizing:border-box; color:var(--text-color); position:relative;">
                 
                 <!-- Left Panel: Characters -->
                 <div style="flex:1; border-right:2px solid var(--neon-blue); padding-right:20px; display:flex; flex-direction:column; overflow-y:auto;" id="menu-party-container" data-testid="menu-party-container">
@@ -78,7 +78,9 @@ export class MenuScene {
         };
     }
 
-    stop() {}
+    stop() {
+        if (this.el) this.el.innerHTML = '';
+    }
 
     unequip(charIndex, type) {
         const char = gameState.party[charIndex];

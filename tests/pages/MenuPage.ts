@@ -14,15 +14,16 @@ export class MenuPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.menuContainer = page.locator('[data-testid="pause-menu"]');
-    this.partyContainer = page.locator('[data-testid="menu-party-container"]');
-    this.inventoryContainer = page.locator('[data-testid="menu-inventory-container"]');
-    this.creditsDisplay = page.locator('[data-testid="menu-credits"]');
-    this.btnClose = page.locator('[data-testid="btn-close-menu"]');
-    this.btnSave = page.locator('[data-testid="btn-save-game"]');
-    this.tabConsumables = page.locator('[data-testid="tab-consumables"]');
-    this.tabGear = page.locator('[data-testid="tab-gear"]');
-    this.tabSkills = page.locator('[data-testid="tab-skills"]');
+    const activeMenu = page.locator('#menu-scene.scene.active');
+    this.menuContainer = activeMenu.locator('[data-testid="pause-menu"]');
+    this.partyContainer = activeMenu.locator('[data-testid="menu-party-container"]');
+    this.inventoryContainer = activeMenu.locator('[data-testid="menu-inventory-container"]');
+    this.creditsDisplay = activeMenu.locator('[data-testid="menu-credits"]');
+    this.btnClose = activeMenu.locator('[data-testid="btn-close-menu"]');
+    this.btnSave = activeMenu.locator('[data-testid="btn-save-game"]');
+    this.tabConsumables = activeMenu.locator('[data-testid="tab-consumables"]');
+    this.tabGear = activeMenu.locator('[data-testid="tab-gear"]');
+    this.tabSkills = activeMenu.locator('[data-testid="tab-skills"]');
   }
 
   async isVisible() {

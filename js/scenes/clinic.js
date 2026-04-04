@@ -11,7 +11,7 @@ export class ClinicScene {
     init(el) {
         this.el = el;
         this.el.innerHTML = `
-            <div id="clinic-scene" data-testid="clinic-scene" style="width:100%;height:100%;display:flex;flex-direction:row;background:#0d0221;color:white;padding:20px;box-sizing:border-box;">
+            <div style="width:100%;height:100%;display:flex;flex-direction:row;background:#0d0221;color:white;padding:20px;box-sizing:border-box;">
                 <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; border-right:2px solid #0f0; padding-right:20px;">
                     <img src="assets/cyber_doc_1775236649213.png" style="width:200px; height:200px; border:2px solid #0f0; border-radius:10px; margin-bottom:20px; object-fit:cover;">
                     <div style="color:#0f0; font-size:20px; text-transform:uppercase; margin-bottom:10px;">Dr. Chrome</div>
@@ -54,6 +54,8 @@ export class ClinicScene {
     }
 
     stop() {
+        if (this.el) this.el.innerHTML = '';
+        this.init(this.el);
     }
 
     updateUI() {

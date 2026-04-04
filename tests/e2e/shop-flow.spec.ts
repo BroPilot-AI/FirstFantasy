@@ -24,21 +24,22 @@ test.describe('Shop Flow', () => {
   });
 
   test('should display credits in shop', async ({ gamePage }) => {
-    const credits = await gamePage.page.locator('[data-testid="shop-credits"]').textContent();
+    const credits = await gamePage.page.locator('#shop-scene.scene.active [data-testid="shop-credits"]').textContent();
     expect(Number(credits)).toBeGreaterThan(0);
   });
 
   test('should buy an item', async ({ gamePage }) => {
-    const initialCredits = Number(await gamePage.page.locator('[data-testid="shop-credits"]').textContent());
-    const buyBtn = gamePage.page.locator('button', { hasText: 'Buy (50C)' }).first();
+    const shop = gamePage.page.locator('#shop-scene.scene.active');
+    const initialCredits = Number(await shop.locator('[data-testid="shop-credits"]').textContent());
+    const buyBtn = shop.locator('button', { hasText: 'Buy (50C)' }).first();
     await buyBtn.click();
     await gamePage.page.waitForTimeout(300);
-    const newCredits = Number(await gamePage.page.locator('[data-testid="shop-credits"]').textContent());
+    const newCredits = Number(await shop.locator('[data-testid="shop-credits"]').textContent());
     expect(newCredits).toBe(initialCredits - 50);
   });
 
   test('should leave shop and return to town', async ({ gamePage }) => {
-    await gamePage.page.locator('[data-testid="btn-leave-shop"]').click();
+    await gamePage.page.locator('#shop-scene.scene.active [data-testid="btn-leave-shop"]').click();
     await gamePage.page.waitForTimeout(500);
     await expect(gamePage.page.locator('#town-scene.scene.active')).toBeVisible();
   });

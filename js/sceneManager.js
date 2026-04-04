@@ -47,6 +47,7 @@ class SceneManager {
         if (!this.menuActive) {
             this.menuActive = true;
             menuEl.classList.add('active');
+            this.scenes['menu'].init(menuEl);
             this.scenes['menu'].start();
         } else {
             this.menuActive = false;
@@ -61,7 +62,10 @@ class SceneManager {
             document.getElementById(`${this.currentScene.name}-scene`).classList.remove('active');
         }
 
-        document.getElementById('ui-layer').innerHTML = '';
+        // Only clear battle/gameover overlays, preserve the base overlay structure
+        const uiLayer = document.getElementById('ui-layer');
+        const overlays = uiLayer.querySelectorAll('.overlay-message.active');
+        overlays.forEach(o => o.remove());
 
         const nextScene = this.scenes[sceneName];
         if (nextScene) {

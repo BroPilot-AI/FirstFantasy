@@ -93,6 +93,9 @@ export class GridScene {
         this.gridContainer.innerHTML = '';
         InputManager.clearInputs();
         audio.stopBGM();
+        // Clear and re-init to prevent duplicate elements on re-entry
+        if (this.el) this.el.innerHTML = '';
+        this.init(this.el);
     }
 
     buildMap() {
