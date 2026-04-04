@@ -42,6 +42,8 @@ export class TownScene extends GridScene {
         if(!params || !params.returningFromInterior) {
             this.showOverlay("NEON TOWN", "Explore the new buildings or head South to the World Map.");
         }
+
+        audio.playBGM('town');
     }
 
     onInteract(target) {
@@ -87,5 +89,11 @@ export class TownScene extends GridScene {
             btn.onclick = oldClick;
         };
         overlay.classList.add('active');
+    }
+
+    getCompassDest() {
+        if (this.playerPos.y >= 11) return 'South: World Map';
+        if (this.playerPos.y <= 3 && this.playerPos.x >= 8 && this.playerPos.x <= 11) return '';
+        return 'Explore Town';
     }
 }

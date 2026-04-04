@@ -26,13 +26,73 @@ export class GridScene {
 
     start(params) {
         this.buildMap();
+        this.buildCompass();
         this.loopId = requestAnimationFrame((t) => this.update(t));
+    }
+
+    buildCompass() {
+        const existing = this.el.querySelector('.compass');
+        if (existing) existing.remove();
+
+        const compass = document.createElement('div');
+        compass.className = 'compass';
+        compass.id = 'scene-compass';
+        compass.innerHTML = `
+            <div class="compass-row"><span class="compass-arrow" id="compass-n">▲</span></div>
+            <div class="compass-row">
+                <span class="compass-arrow" id="compass-w">◄</span>
+                <span class="compass-arrow" id="compass-e">►</span>
+            </div>
+            <div class="compass-row"><span class="compass-arrow" id="compass-s">▼</span></div>
+            <div class="compass-label" id="compass-dest">Explore</div>
+        `;
+        this.el.querySelector('.grid-map').appendChild(compass);
+        this.updateCompass();
+    }
+
+    updateCompass() {
+        const dest = this.getCompassDest();
+        const el = document.getElementById('compass-dest');
+        if (el && dest) el.innerText = dest;
+
+        const dirs = { n: false, s: false, e: false, w: false };
+        const { x, y } = this.playerPos;
+        
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+                const nx = x + dx, ny = y + dy;
+                if (ny >= 0 && ny < this.mapData.length && nx >= 0 && nx < this.mapData[0].length) {
+                    const val = this.mapData[ny][nx];
+                    if (val === 2) {
+                        if (dy < 0) dirs.n = true;
+                        if (dy > 0) dirs.s = true;
+                        if (dx < 0) dirs.w = true;
+                        if (dx > 0) dirs.e = true;
+                    }
+                }
+            }
+        }
+
+        const setDir = (id, active) => {
+            const el = document.getElementById(`compass-${id}`);
+            if (el) el.className = `compass-arrow${active ? ' active' : ''}`;
+        };
+        setDir('n', dirs.n);
+        setDir('s', dirs.s);
+        setDir('e', dirs.e);
+        setDir('w', dirs.w);
+    }
+
+    getCompassDest() {
+        return null;
     }
 
     stop() {
         cancelAnimationFrame(this.loopId);
         this.gridContainer.innerHTML = '';
         InputManager.clearInputs();
+        audio.stopBGM();
     }
 
     buildMap() {
@@ -143,6 +203,7 @@ export class GridScene {
                         audio.playMoveSound();
                         
                         this.onStep();
+                        this.updateCompass();
                     } else {
                         audio.playBumpSound();
                         this.lastMoveTime = time;

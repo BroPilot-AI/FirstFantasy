@@ -11,7 +11,11 @@ class GameState {
             ],
             gear: []
         };
-        this.playerMapPos = { x: 1, y: 1 }; 
+        this.playerMapPos = { x: 1, y: 1 };
+        this.worldChestOpened = false;
+        this.forestCampUsed = false;
+        this.forestChestOpened = false;
+        this.tutorialSeen = false;
     }
 
     init() {
@@ -83,6 +87,50 @@ class GameState {
             }
         });
         return leveledUp;
+    }
+
+    save() {
+        const data = {
+            party: this.party,
+            credits: this.credits,
+            inventory: this.inventory,
+            playerMapPos: this.playerMapPos,
+            worldChestOpened: this.worldChestOpened,
+            forestCampUsed: this.forestCampUsed,
+            forestChestOpened: this.forestChestOpened,
+            tutorialSeen: this.tutorialSeen
+        };
+        try {
+            localStorage.setItem('cybertaco_save', JSON.stringify(data));
+            return true;
+        } catch (e) {
+            console.error('Save failed:', e);
+            return false;
+        }
+    }
+
+    load() {
+        try {
+            const raw = localStorage.getItem('cybertaco_save');
+            if (!raw) return false;
+            const data = JSON.parse(raw);
+            this.party = data.party;
+            this.credits = data.credits;
+            this.inventory = data.inventory;
+            this.playerMapPos = data.playerMapPos;
+            this.worldChestOpened = data.worldChestOpened;
+            this.forestCampUsed = data.forestCampUsed;
+            this.forestChestOpened = data.forestChestOpened;
+            this.tutorialSeen = data.tutorialSeen;
+            return true;
+        } catch (e) {
+            console.error('Load failed:', e);
+            return false;
+        }
+    }
+
+    hasSave() {
+        return localStorage.getItem('cybertaco_save') !== null;
     }
 }
 

@@ -1,6 +1,7 @@
 import { GridScene } from './gridScene.js';
 import { sceneManager } from '../sceneManager.js';
 import { gameState } from '../gameState.js';
+import { audio } from '../audioManager.js';
 
 export class WorldMapScene extends GridScene {
     start(params) {
@@ -11,9 +12,10 @@ export class WorldMapScene extends GridScene {
         for(let i=0; i<15; i++) { this.mapData[i][0] = 1; this.mapData[i][19] = 1; }
 
         // Exit to Town (South)
-        this.mapData[12][10] = 2; // Representing town
-        // Exit to Dungeon (North)
-        this.mapData[2][10] = 2; // Representing dungeon
+        this.mapData[12][10] = 2;
+        // Exit to Forest (North)
+        this.mapData[2][9] = 2;
+        this.mapData[2][10] = 2;
 
         // Add some random mountains (obstacles) and trees
         this.buildings = [];
@@ -33,7 +35,7 @@ export class WorldMapScene extends GridScene {
 
         if (params && params.from === 'town') {
             this.playerPos = { x: 10, y: 11 };
-        } else if (params && params.from === 'dungeon') {
+        } else if (params && params.from === 'forest') {
             this.playerPos = { x: 10, y: 3 };
         } else {
             this.playerPos = { x: 10, y: 7 };
@@ -44,13 +46,15 @@ export class WorldMapScene extends GridScene {
         document.documentElement.style.setProperty('--grid-color', '#05311e');
 
         super.start(params);
+        
+        audio.playBGM('town');
     }
 
     onStep() {
         if (this.playerPos.y === 12 && this.playerPos.x === 10) {
             sceneManager.changeScene('town');
-        } else if (this.playerPos.y === 2 && this.playerPos.x === 10) {
-            sceneManager.changeScene('dungeon');
+        } else if (this.playerPos.y === 2 && this.playerPos.x >= 9 && this.playerPos.x <= 10) {
+            sceneManager.changeScene('forest', { from: 'worldMap' });
         }
     }
 
@@ -89,5 +93,11 @@ export class WorldMapScene extends GridScene {
         // Reset colors
         document.documentElement.style.setProperty('--bg-color', '#0d0221');
         document.documentElement.style.setProperty('--grid-color', '#241738');
+    }
+
+    getCompassDest() {
+        if (this.playerPos.y >= 11) return 'South: Town';
+        if (this.playerPos.y <= 3) return 'North: Forest';
+        return 'Explore the Wilds';
     }
 }

@@ -5,6 +5,7 @@ import { BattleScene } from './scenes/battle.js';
 import { ClinicScene } from './scenes/clinic.js';
 import { ShopScene } from './scenes/shop.js';
 import { MenuScene } from './scenes/menu.js';
+import { ForestScene } from './scenes/forest.js';
 
 class SceneManager {
     constructor() {
@@ -24,7 +25,8 @@ class SceneManager {
             'battle': new BattleScene(),
             'clinic': new ClinicScene(),
             'shop': new ShopScene(),
-            'menu': new MenuScene()
+            'menu': new MenuScene(),
+            'forest': new ForestScene()
         };
 
         // Create DOM elements for each scene

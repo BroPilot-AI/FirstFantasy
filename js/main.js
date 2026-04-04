@@ -4,7 +4,6 @@ import { gameState } from './gameState.js';
 import { InputManager } from './inputManager.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Show start menu using UI overlay
     const overlay = document.getElementById('overlay');
     const overlayTitle = document.getElementById('overlay-title');
     const overlayText = document.getElementById('overlay-text');
@@ -15,10 +14,8 @@ window.addEventListener('DOMContentLoaded', () => {
     overlayBtn.innerText = "START GAME";
     overlay.classList.add('active');
 
-    // Init inputs
     InputManager.init();
 
-    // Global Pause/Inventory Input
     window.addEventListener('keydown', (e) => {
         if (e.code === 'KeyI' || e.code === 'Escape') {
             sceneManager.toggleMenu();
@@ -26,20 +23,54 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     const startFn = () => {
-        // Init audio context on user interaction
         audio.init();
-        
-        // Hide overlay
         overlay.classList.remove('active');
-
-        // Start game
         gameState.init();
         sceneManager.init();
+        
+        if (!gameState.tutorialSeen) {
+            gameState.tutorialSeen = true;
+            setTimeout(() => {
+                const tutOverlay = document.getElementById('overlay');
+                document.getElementById('overlay-title').innerText = "HOW TO PLAY";
+                document.getElementById('overlay-text').innerText = "Arrow Keys: Move | I: Menu/Inventory | Walk into buildings to interact | Space: Interact with NPCs";
+                document.getElementById('overlay-btn').innerText = "Got it!";
+                const oldClick = document.getElementById('overlay-btn').onclick;
+                document.getElementById('overlay-btn').onclick = () => {
+                    tutOverlay.classList.remove('active');
+                    document.getElementById('overlay-btn').onclick = oldClick;
+                };
+                tutOverlay.classList.add('active');
+            }, 500);
+        }
+        
         sceneManager.changeScene('town');
-
-        // Remove listener to prevent re-initialization 
         overlayBtn.removeEventListener('click', startFn);
     };
 
+    const loadFn = () => {
+        audio.init();
+        overlay.classList.remove('active');
+        if (gameState.load()) {
+            sceneManager.init();
+            sceneManager.changeScene('town');
+        } else {
+            gameState.init();
+            sceneManager.init();
+            sceneManager.changeScene('town');
+        }
+        overlayBtn.removeEventListener('click', loadFn);
+    };
+
     overlayBtn.addEventListener('click', startFn);
+
+    if (gameState.hasSave()) {
+        overlayText.innerText += "\n\nA save file was found.";
+        const loadBtn = document.createElement('button');
+        loadBtn.className = 'cyber-btn';
+        loadBtn.innerText = 'LOAD GAME';
+        loadBtn.style.marginTop = '10px';
+        overlay.appendChild(loadBtn);
+        loadBtn.addEventListener('click', loadFn);
+    }
 });

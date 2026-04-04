@@ -71,9 +71,50 @@ class AudioManager {
     }
 
     playBGM(type) {
-        // A full BGM loop is complex with Vanilla Web Audio API
-        // For this demo, we'll just log it. A background arpeggiator could be added.
-        console.log("Playing BGM:", type);
+        if (!this.initialized) return;
+        if (this._currentBGM) {
+            try { this._currentBGM.stop(); } catch(e) {}
+        }
+        
+        const configs = {
+            town: { freq: 220, type: 'sine', interval: 800, vol: 0.15 },
+            forest: { freq: 180, type: 'triangle', interval: 1200, vol: 0.1 },
+            dungeon: { freq: 120, type: 'sawtooth', interval: 600, vol: 0.12 },
+            battle: { freq: 300, type: 'square', interval: 300, vol: 0.1 }
+        };
+        
+        const cfg = configs[type] || configs.town;
+        
+        const playNote = () => {
+            if (!this.initialized) return;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = cfg.type;
+            const notes = [1, 1.2, 1.25, 1.5, 1.33];
+            const note = notes[Math.floor(Math.random() * notes.length)];
+            osc.frequency.setValueAtTime(cfg.freq * note, this.ctx.currentTime);
+            gain.gain.setValueAtTime(cfg.vol, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + (cfg.interval / 1000) * 0.8);
+            osc.connect(gain);
+            gain.connect(this.masterVolume);
+            osc.start();
+            osc.stop(this.ctx.currentTime + (cfg.interval / 1000) * 0.8);
+        };
+        
+        playNote();
+        this._bgmInterval = setInterval(playNote, cfg.interval);
+        this._currentBGM = { stop: () => { clearInterval(this._bgmInterval); } };
+    }
+
+    stopBGM() {
+        if (this._currentBGM) {
+            try { this._currentBGM.stop(); } catch(e) {}
+            this._currentBGM = null;
+        }
+        if (this._bgmInterval) {
+            clearInterval(this._bgmInterval);
+            this._bgmInterval = null;
+        }
     }
 }
 

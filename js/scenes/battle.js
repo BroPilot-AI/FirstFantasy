@@ -23,8 +23,12 @@ export class BattleScene {
                     <div class="battle-menu" id="main-menu" data-testid="battle-main-menu">
                         <button class="cyber-btn" id="btn-attack" data-testid="btn-attack">Attack</button>
                         <button class="cyber-btn" id="btn-ability" data-testid="btn-ability">Ability</button>
+                        <button class="cyber-btn" id="btn-item" data-testid="btn-item">Item</button>
                         <button class="cyber-btn" id="btn-defend" data-testid="btn-defend">Defend</button>
                         <button class="cyber-btn" id="btn-run" data-testid="btn-run">Run</button>
+                    </div>
+                    <div class="battle-menu" id="item-menu" data-testid="battle-item-menu" style="display:none;">
+                        <!-- Items injected here -->
                     </div>
                     <div class="battle-menu" id="ability-menu" data-testid="battle-ability-menu" style="display:none;">
                         <!-- Abilities injected here -->
@@ -40,12 +44,16 @@ export class BattleScene {
 
     start(params) {
         this.dungeonPos = params ? params.dungeonPos : null;
+        this.forestPos = params ? params.forestPos : null;
+        this.encounterType = params ? params.encounterType : null;
         this.isBoss = params && params.isBoss;
+        this.turnCount = 0;
+        this.tempBuffs = []; // Track temporary buffs: { target, stat, amount, turnsLeft }
         
         // Calculate average party level
         let avgLevel = Math.max(1, Math.floor(gameState.party.reduce((sum, p) => sum + (p.level || 1), 0) / gameState.party.length));
         
-        this.enemies = createEnemyGroup(this.isBoss ? 'boss' : 'random', avgLevel);
+        this.enemies = createEnemyGroup(this.isBoss ? 'boss' : (this.encounterType || 'random'), avgLevel);
         
         // Setup initial party state for battle
         gameState.party.forEach(c => c.isDefending = false);
@@ -53,6 +61,8 @@ export class BattleScene {
         this.updateUI();
         this.logMessage(`A battle begins (Threat Level ${avgLevel})!`, "action");
         this.nextTurn();
+        
+        audio.playBGM('battle');
     }
 
     stop() {
@@ -75,14 +85,22 @@ export class BattleScene {
             gameState.credits += totalCreds;
             let leveledUp = gameState.addXp(totalXp);
             
+            // Post-battle recovery: restore 15% HP and MP
+            gameState.party.forEach(c => {
+                if (c.hp > 0) {
+                    c.hp = Math.min(c.maxHp, c.hp + Math.floor(c.maxHp * 0.15));
+                    c.mp = Math.min(c.maxMp, c.mp + Math.floor(c.maxMp * 0.15));
+                }
+            });
+            
             this.logMessage(`Victory! Gained ${totalXp} XP and ${totalCreds} Credits!`, "heal");
             if (leveledUp) this.logMessage(`The party Leveled Up!`, "critical");
+            this.logMessage(`Party recovers 15% HP and MP.`, "heal");
             
             this.updateUI();
             
             setTimeout(() => {
                 if (this.isBoss) {
-                    // Win game
                     document.getElementById('ui-layer').innerHTML = `
                         <div class="overlay-message active" style="pointer-events: auto;">
                             <h1 style="color:var(--neon-green)">SYSTEM OVERRIDE SUCCESSFUL</h1>
@@ -90,10 +108,12 @@ export class BattleScene {
                             <button class="cyber-btn" onclick="location.reload()">REBOOT SYSTEM</button>
                         </div>
                     `;
+                } else if (this.forestPos) {
+                    sceneManager.changeScene('forest', { x: this.forestPos.x, y: this.forestPos.y, returningFromBattle: true });
                 } else {
-                    sceneManager.changeScene('dungeon', { x: this.dungeonPos.x, y: this.dungeonPos.y });
+                    sceneManager.changeScene('dungeon', { x: this.dungeonPos.x, y: this.dungeonPos.y, returningFromBattle: true });
                 }
-            }, 3000); // give them 3 seconds to read the victory message
+            }, 3000);
             return true;
         }
 
@@ -101,14 +121,29 @@ export class BattleScene {
         if (alivePlayers.length === 0) {
             this.logMessage("The party was defeated...", "damage");
             setTimeout(() => {
-                // Game Over
                 document.getElementById('ui-layer').innerHTML = `
                     <div class="overlay-message active" style="pointer-events: auto;">
                         <h1 style="color:red">SYSTEM FAILURE</h1>
                         <p>Your connection has been terminated.</p>
-                        <button class="cyber-btn" onclick="location.reload()">RETRY CONNECTION</button>
+                        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                            <button class="cyber-btn" id="btn-retry">RETRY (Keep Items)</button>
+                            <button class="cyber-btn" id="btn-reload">RESTART GAME</button>
+                        </div>
                     </div>
                 `;
+                document.getElementById('btn-retry').onclick = () => {
+                    gameState.party.forEach(c => {
+                        c.hp = Math.floor(c.maxHp * 0.5);
+                        c.mp = Math.floor(c.maxMp * 0.5);
+                    });
+                    document.getElementById('ui-layer').innerHTML = '';
+                    if (this.forestPos) {
+                        sceneManager.changeScene('forest', { x: this.forestPos.x, y: this.forestPos.y, returningFromBattle: true });
+                    } else {
+                        sceneManager.changeScene('dungeon', { returningFromBattle: true, pos: this.dungeonPos });
+                    }
+                };
+                document.getElementById('btn-reload').onclick = () => location.reload();
             }, 2000);
             return true;
         }
@@ -117,6 +152,9 @@ export class BattleScene {
 
     nextTurn() {
         if (this.checkWinCondition()) return;
+
+        this.turnCount++;
+        this.expireBuffs();
 
         const units = this.getAllUnits();
         
@@ -160,8 +198,15 @@ export class BattleScene {
                     this.dealDamage(target, ab.damage);
                     dealtDamage = true;
                 } else if (ab.defBuff) {
+                    const turns = ab.turns || 3;
                     enemyUnit.ref.defense += ab.defBuff;
-                    this.logMessage(`${enemyUnit.name} increases defense!`, "action");
+                    this.tempBuffs.push({
+                        target: enemyUnit.ref,
+                        stat: 'defense',
+                        amount: ab.defBuff,
+                        turnsLeft: turns
+                    });
+                    this.logMessage(`${enemyUnit.name} increases defense for ${turns} turns!`, "action");
                 }
             } else {
                 this.logMessage(`${enemyUnit.name} attacks!`, "action");
@@ -175,6 +220,17 @@ export class BattleScene {
         }, 300);
         
         setTimeout(() => this.nextTurn(), 1500);
+    }
+
+    expireBuffs() {
+        for (let i = this.tempBuffs.length - 1; i >= 0; i--) {
+            const buff = this.tempBuffs[i];
+            buff.turnsLeft--;
+            if (buff.turnsLeft <= 0) {
+                buff.target[buff.stat] = Math.max(0, buff.target[buff.stat] - buff.amount);
+                this.tempBuffs.splice(i, 1);
+            }
+        }
     }
 
     dealDamage(targetUnit, amount) {
@@ -210,6 +266,7 @@ export class BattleScene {
         this.resetMenus();
         document.getElementById('btn-attack').onclick = () => this.showTargetMenu(playerUnit, 'attack');
         document.getElementById('btn-ability').onclick = () => this.showAbilityMenu(playerUnit);
+        document.getElementById('btn-item').onclick = () => this.showItemMenu(playerUnit);
         document.getElementById('btn-defend').onclick = () => {
             playerUnit.ref.isDefending = true;
             this.logMessage(`${playerUnit.name} defends!`, "action");
@@ -254,6 +311,61 @@ export class BattleScene {
         });
     }
 
+    showItemMenu(playerUnit) {
+        document.getElementById('main-menu').style.display = 'none';
+        const imap = document.getElementById('item-menu');
+        imap.style.display = 'flex';
+        imap.innerHTML = '';
+
+        const backBtn = document.createElement('button');
+        backBtn.className = 'cyber-btn';
+        backBtn.innerText = 'Back';
+        backBtn.onclick = () => this.resetMenus();
+        imap.appendChild(backBtn);
+
+        gameState.inventory.consumables.forEach(item => {
+            if (item.amount <= 0) return;
+            const btn = document.createElement('button');
+            btn.className = 'cyber-btn';
+            btn.innerText = `${item.name} (x${item.amount})`;
+            btn.onclick = () => this.useItem(playerUnit, item);
+            imap.appendChild(btn);
+        });
+
+        if (imap.children.length <= 1) {
+            const emptyMsg = document.createElement('span');
+            emptyMsg.style.color = '#666';
+            emptyMsg.style.padding = '5px';
+            emptyMsg.innerText = 'No items available';
+            imap.appendChild(emptyMsg);
+        }
+    }
+
+    useItem(playerUnit, item) {
+        if (item.amount <= 0) return;
+        item.amount--;
+
+        if (item.heal) {
+            const alivePlayers = gameState.party.filter(p => p.hp > 0);
+            const target = alivePlayers.find(p => p.name === playerUnit.name) || alivePlayers[0];
+            this.healUnit(target, item.heal);
+            audio.playMagicSound();
+        } else if (item.damage) {
+            const aliveEnemies = this.enemies.filter(e => e.hp > 0);
+            if (aliveEnemies.length > 0) {
+                const target = aliveEnemies[0];
+                this.logMessage(`${playerUnit.name} throws ${item.name} at ${target.name}!`, "action");
+                this.dealDamage(target, item.damage);
+                audio.playAttackSound();
+                this.animateAction(target, 'anim-damage', 400);
+            }
+        }
+
+        this.updateUI();
+        this.disableMenu();
+        setTimeout(() => this.nextTurn(), 1500);
+    }
+
     showTargetMenu(playerUnit, actionType, ability = null, targetGroup = this.enemies) {
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('ability-menu').style.display = 'none';
@@ -281,6 +393,7 @@ export class BattleScene {
         document.getElementById('main-menu').style.display = 'flex';
         document.getElementById('ability-menu').style.display = 'none';
         document.getElementById('target-menu').style.display = 'none';
+        document.getElementById('item-menu').style.display = 'none';
         document.querySelectorAll('.cyber-btn').forEach(b => b.disabled = false);
     }
 
@@ -308,8 +421,16 @@ export class BattleScene {
                 } else if (ability.heal) {
                     this.healUnit(target, ability.heal);
                 } else if (ability.defBuff) {
-                    target.isDefending = true; // proxy for def buff
-                    this.logMessage(`${target.name}'s defense is boosted!`, "heal");
+                    const turns = ability.turns || 3;
+                    target.isDefending = true;
+                    target.defense += ability.defBuff;
+                    this.tempBuffs.push({
+                        target: target,
+                        stat: 'defense',
+                        amount: ability.defBuff,
+                        turnsLeft: turns
+                    });
+                    this.logMessage(`${target.name}'s defense is boosted for ${turns} turns!`, "heal");
                 }
             }
             
@@ -367,6 +488,9 @@ export class BattleScene {
             el.className = `log-entry ${typeClass}`;
             el.innerText = msg;
             log.appendChild(el);
+            while (log.children.length > 50) {
+                log.removeChild(log.firstChild);
+            }
             log.scrollTop = log.scrollHeight;
         }
     }

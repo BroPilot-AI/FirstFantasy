@@ -399,3 +399,40 @@ h1, h2, h3 {
     50% { transform: scale(1.2); filter: brightness(2) drop-shadow(0 0 15px var(--neon-blue)); }
     100% { transform: scale(1); filter: brightness(1); }
 }
+
+.compass {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--neon-blue);
+    padding: 5px 8px;
+    font-size: 10px;
+    color: var(--neon-blue);
+    pointer-events: none;
+}
+.compass-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.compass-arrow {
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.8;
+}
+.compass-arrow.active {
+    opacity: 1;
+    color: white;
+    text-shadow: 0 0 5px white;
+}
+.compass-label {
+    font-size: 8px;
+    color: #888;
+    text-align: center;
+    margin-top: 2px;
+}

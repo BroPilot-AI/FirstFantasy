@@ -36,7 +36,8 @@ export class MenuScene {
                         <!-- Injected via updateUI -->
                     </div>
 
-                    <button class="cyber-btn" id="btn-close-menu" data-testid="btn-close-menu" style="margin-top:20px;">[ESC] Close Menu</button>
+                    <button class="cyber-btn" id="btn-save-game" data-testid="btn-save-game" style="margin-top:10px;">Save Game</button>
+                    <button class="cyber-btn" id="btn-close-menu" data-testid="btn-close-menu" style="margin-top:10px;">[ESC] Close Menu</button>
                 </div>
             </div>
         `;
@@ -57,6 +58,20 @@ export class MenuScene {
         document.getElementById('tab-skills').onclick = () => {
             this.activeTab = 'skills';
             this.updateUI();
+        };
+        document.getElementById('btn-save-game').onclick = () => {
+            if (gameState.save()) {
+                audio.playWinSound();
+                const saveBtn = document.getElementById('btn-save-game');
+                saveBtn.innerText = 'Game Saved!';
+                saveBtn.style.borderColor = 'var(--neon-green)';
+                saveBtn.style.color = 'var(--neon-green)';
+                setTimeout(() => {
+                    saveBtn.innerText = 'Save Game';
+                    saveBtn.style.borderColor = '';
+                    saveBtn.style.color = '';
+                }, 2000);
+            }
         };
         document.getElementById('btn-close-menu').onclick = () => {
             sceneManager.toggleMenu();
