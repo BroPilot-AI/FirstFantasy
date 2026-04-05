@@ -39,6 +39,23 @@ export class DungeonScene extends GridScene {
         this.mapData[1][11] = 0;
         this.mapData[2][10] = 0;
 
+        // New: Secret armory room (west side, row 5)
+        for(let x=2; x<=5; x++) { this.mapData[5][x] = 0; }
+        for(let y=4; y<=6; y++) { this.mapData[y][3] = 0; }
+        this.mapData[4][4] = 0; this.mapData[4][5] = 0;
+        this.mapData[6][4] = 0; this.mapData[6][5] = 0;
+
+        // New: Prison cells (east side, row 9)
+        for(let x=14; x<=17; x++) { this.mapData[9][x] = 0; }
+        for(let y=8; y<=10; y++) { this.mapData[y][16] = 0; }
+        this.mapData[8][15] = 0; this.mapData[10][15] = 0;
+
+        // New: Server room (center-left, row 12)
+        for(let x=6; x<=9; x++) { this.mapData[12][x] = 0; }
+        for(let y=11; y<=13; y++) { this.mapData[y][7] = 0; }
+        this.mapData[11][8] = 0; this.mapData[11][9] = 0;
+        this.mapData[13][8] = 0; this.mapData[13][9] = 0;
+
         // Exit back to forest (South)
         this.mapData[14][10] = 2;
         this.mapData[13][10] = 0;
@@ -57,6 +74,20 @@ export class DungeonScene extends GridScene {
             this.playerPos = { x: params.x, y: params.y };
         }
 
+        // Place interactables
+        this.buildings = [];
+
+        // Dungeon chest in armory
+        if (!gameState.dungeonChestOpened) {
+            this.buildings.push({ x: 3, y: 5, w: 1, h: 1, id: 'dungeon_chest', sprite: 'assets/cyber_chest.png' });
+        }
+
+        // Prisoner NPC who gives hints
+        this.buildings.push({ x: 15, y: 9, w: 1, h: 1, id: 'prisoner', sprite: 'assets/hacker_sprite_1775220089185.png' });
+
+        // Server terminal with lore
+        this.buildings.push({ x: 8, y: 12, w: 1, h: 1, id: 'server_terminal', sprite: 'assets/cyber_building_1775236601593.png' });
+
         super.start(params);
         
         if (!params || !params.returningFromBattle) {
@@ -72,11 +103,39 @@ export class DungeonScene extends GridScene {
             return;
         }
 
-        // Random encounter chance
+        // Random encounter chance (15%, dungeon enemies)
         if (Math.random() < 0.15) {
             audio._playTone(200, 'sawtooth', 0.5, 0.8);
-            // transition to battle scene!
-            sceneManager.changeScene('battle', { isBoss: false, dungeonPos: { x: this.playerPos.x, y: this.playerPos.y } });
+            sceneManager.changeScene('battle', { isBoss: false, dungeonPos: { x: this.playerPos.x, y: this.playerPos.y }, encounterType: 'dungeon' });
+        }
+    }
+
+    onInteract(target) {
+        if (target.id === 'dungeon_chest') {
+            gameState.dungeonChestOpened = true;
+            gameState.credits += 350;
+            const emp = gameState.inventory.consumables.find(c => c.id === 'emp');
+            if (emp) emp.amount += 3;
+            this.showOverlay("ARMORY CACHE", "Found 350 Credits and 3 EMP Grenades!");
+            this.buildings = this.buildings.filter(b => b.id !== 'dungeon_chest');
+            const domNode = this.gridContainer.querySelector('[data-building-id="dungeon_chest"]');
+            if (domNode) domNode.remove();
+        } else if (target.id === 'prisoner') {
+            const hints = [
+                "I was a sysadmin before the Taco took over. The boss has a weakness... it cycles between offense and defense. Watch for the shell defense!",
+                "There's an armory hidden in the west wing. I stashed some supplies there before they caught me.",
+                "The server room to the south holds logs of the corruption. The Taco came from the deep web...",
+                "If you defeat the Boss, the whole network should reset. Please... you're our only hope."
+            ];
+            this.showOverlay("CAPTIVE ADMIN", hints[Math.floor(Math.random() * hints.length)]);
+        } else if (target.id === 'server_terminal') {
+            if (!gameState.serverTerminalRead) {
+                gameState.serverTerminalRead = true;
+                gameState.credits += 100;
+                this.showOverlay("SERVER LOGS", "Accessing corrupted server logs... Found 100 Credits in a dormant account. The Boss's power source is the Core Server at the North end.");
+            } else {
+                this.showOverlay("SERVER LOGS", "The terminal flickers. Most data is corrupted beyond recovery. The Boss looms to the North.");
+            }
         }
     }
 

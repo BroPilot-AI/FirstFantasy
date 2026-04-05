@@ -8,28 +8,26 @@ test.describe('Town Navigation', () => {
     if (await gamePage.isOverlayVisible()) {
       await gamePage.dismissOverlay();
     }
-    await gamePage.page.waitForTimeout(300);
-  });
-
-  test.fixme('should have compass visible in town', async ({ gamePage }) => {
-    test.fixme(true, 'Compass element not found due to scene DOM cleanup between tests');
     await gamePage.page.waitForTimeout(500);
-    await expect(gamePage.page.locator('#town-scene.scene.active .compass')).toBeVisible();
   });
 
-  test.fixme('should move player with arrow keys', async ({ gamePage }) => {
-    test.fixme(true, 'Player movement triggers scene transition before position can be measured');
+  test('should have compass visible in town', async ({ gamePage }) => {
+    const compass = gamePage.page.locator('#town-scene.scene.active .compass');
+    await expect(compass).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should move player with arrow keys', async ({ gamePage }) => {
     const player = gamePage.page.locator('#town-scene.scene.active .player');
     await expect(player).toBeVisible({ timeout: 5000 });
     const initialBox = await player.boundingBox();
     expect(initialBox).not.toBeNull();
-    await gamePage.page.keyboard.down('ArrowDown');
-    await gamePage.page.waitForTimeout(500);
-    await gamePage.page.keyboard.up('ArrowDown');
-    await gamePage.page.waitForTimeout(500);
-    const newBox = await player.boundingBox();
+    await gamePage.page.keyboard.down('ArrowRight');
+    await gamePage.page.waitForTimeout(400);
+    await gamePage.page.keyboard.up('ArrowRight');
+    await gamePage.page.waitForTimeout(300);
+    const newBox = await player.boundingBox({ timeout: 5000 });
     expect(newBox).not.toBeNull();
-    expect(newBox!.y).toBeGreaterThanOrEqual(initialBox!.y);
+    expect(newBox!.x).toBeGreaterThan(initialBox!.x);
   });
 
   test('should walk into shop and trigger interaction', async ({ gamePage }) => {

@@ -21,6 +21,12 @@ type GameFixtures = {
 
 export const test = base.extend<GameFixtures>({
   gamePage: async ({ page }, use) => {
+    await page.addInitScript(() => {
+      localStorage.removeItem('cybertaco_save');
+      localStorage.removeItem('cybertaco_save_0');
+      localStorage.removeItem('cybertaco_save_1');
+      localStorage.removeItem('cybertaco_save_2');
+    });
     const gamePage = new GamePage(page);
     await gamePage.goto();
     await use(gamePage);

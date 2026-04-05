@@ -7,7 +7,6 @@ export class ForestScene extends GridScene {
     start(params) {
         this.mapData = Array(15).fill(null).map(() => Array(20).fill(1));
         
-        // Build a winding maze with guaranteed paths
         // Main vertical corridor (slightly offset for variety)
         for(let y=1; y<14; y++) {
             this.mapData[y][10] = 0;
@@ -34,6 +33,15 @@ export class ForestScene extends GridScene {
         for(let x=4; x<=6; x++) { this.mapData[5][x] = 0; }
         for(let x=14; x<=16; x++) { this.mapData[9][x] = 0; }
         for(let y=4; y<=6; y++) { this.mapData[y][15] = 0; }
+        
+        // New: Secret grove (northwest corner, hidden path)
+        this.mapData[2][2] = 0; this.mapData[2][3] = 0;
+        this.mapData[3][2] = 0;
+        for(let y=1; y<=3; y++) { this.mapData[y][1] = 0; }
+        
+        // New: Ancient shrine (northeast corner)
+        this.mapData[2][17] = 0; this.mapData[2][18] = 0;
+        this.mapData[3][18] = 0;
         
         // Clear tiles around entrance area for signpost
         for(let x=11; x<=14; x++) { this.mapData[2][x] = 0; }
@@ -65,6 +73,19 @@ export class ForestScene extends GridScene {
         // Hidden treasure (west room)
         if (!gameState.forestChestOpened) {
             this.buildings.push({ x: 5, y: 5, w: 1, h: 1, id: 'forest_chest', sprite: 'assets/cyber_chest.png' });
+        }
+
+        // New: Secret grove shrine with rare item
+        if (!gameState.forestShrineVisited) {
+            this.buildings.push({ x: 2, y: 2, w: 1, h: 1, id: 'forest_shrine', sprite: 'assets/cyber_fountain.png' });
+        }
+
+        // New: Ancient tree with lore (northeast)
+        this.buildings.push({ x: 17, y: 2, w: 1, h: 1, id: 'ancient_tree', sprite: 'assets/neon_tree_1775236618044.png' });
+
+        // New: Second hidden chest (southwest room)
+        if (!gameState.forestChest2Opened) {
+            this.buildings.push({ x: 4, y: 12, w: 1, h: 1, id: 'forest_chest_2', sprite: 'assets/cyber_chest.png' });
         }
 
         // Position player
@@ -133,8 +154,37 @@ export class ForestScene extends GridScene {
             this.buildings = this.buildings.filter(b => b.id !== 'forest_chest');
             const domNode = this.gridContainer.querySelector('[data-building-id="forest_chest"]');
             if (domNode) domNode.remove();
+        } else if (target.id === 'forest_chest_2') {
+            gameState.forestChest2Opened = true;
+            gameState.credits += 150;
+            const emp = gameState.inventory.consumables.find(c => c.id === 'emp');
+            if (emp) emp.amount += 2;
+            this.showOverlay("FORGOTTEN STASH", "Found 150 Credits and 2 EMP Grenades!");
+            this.buildings = this.buildings.filter(b => b.id !== 'forest_chest_2');
+            const domNode = this.gridContainer.querySelector('[data-building-id="forest_chest_2"]');
+            if (domNode) domNode.remove();
         } else if (target.id === 'signpost') {
             this.showOverlay("FOREST SIGN", "DANGER: Corrupted data entities ahead. South leads to the Tech-Dungeon. North leads back to the World Map.");
+        } else if (target.id === 'forest_shrine') {
+            gameState.forestShrineVisited = true;
+            // Grant a random party member a permanent +5 stat boost
+            const char = gameState.party[Math.floor(Math.random() * gameState.party.length)];
+            if (char.hp > 0) {
+                char.maxHp += 10;
+                char.hp += 10;
+            }
+            this.showOverlay("ANCIENT SHRINE", `A data-shrine pulses with energy. ${char.name} feels stronger! (+10 Max HP)`);
+            this.buildings = this.buildings.filter(b => b.id !== 'forest_shrine');
+            const domNode = this.gridContainer.querySelector('[data-building-id="forest_shrine"]');
+            if (domNode) domNode.remove();
+        } else if (target.id === 'ancient_tree') {
+            const lore = [
+                "The trees remember when the grid was pure. Before the Taco corrupted everything.",
+                "Legend says the Boss guards the Core Server. Defeat it and the network will be freed.",
+                "Some say the forest itself is alive... a corrupted AI dreaming of green fields.",
+                "The data-streams flow South to the Dungeon. That's where the corruption is strongest."
+            ];
+            this.showOverlay("ANCIENT TREE", lore[Math.floor(Math.random() * lore.length)]);
         }
     }
 

@@ -48,7 +48,8 @@ test.describe('Menu Flow', () => {
   test('should save game from menu', async ({ menuPage, gamePage }) => {
     await menuPage.open();
     await menuPage.saveGame();
-    const saveBtn = menuPage.btnSave;
-    await expect(saveBtn).toContainText('Game Saved!');
+    await gamePage.page.waitForTimeout(500);
+    const container = menuPage.inventoryContainer;
+    await expect(container).toContainText('SELECT SAVE SLOT');
   });
 });

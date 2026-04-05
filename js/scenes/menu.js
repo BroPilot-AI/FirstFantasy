@@ -7,6 +7,7 @@ export class MenuScene {
         this.el = null;
         this.activeTab = 'consumables';
         this.selectedCharacterIndex = 0;
+        this.saveMode = false;
     }
 
     init(el) {
@@ -29,6 +30,7 @@ export class MenuScene {
                     <div style="display:flex; gap:10px; margin-bottom:15px;">
                         <button class="cyber-btn" id="tab-consumables" data-testid="tab-consumables" style="flex:1; font-size:12px;">Consumables</button>
                         <button class="cyber-btn" id="tab-gear" data-testid="tab-gear" style="flex:1; font-size:12px;">Gear</button>
+                        <button class="cyber-btn" id="tab-materials" data-testid="tab-materials" style="flex:1; font-size:12px;">Materials</button>
                         <button class="cyber-btn" id="tab-skills" data-testid="tab-skills" style="flex:1; font-size:12px;">Skills</button>
                     </div>
 
@@ -36,7 +38,10 @@ export class MenuScene {
                         <!-- Injected via updateUI -->
                     </div>
 
-                    <button class="cyber-btn" id="btn-save-game" data-testid="btn-save-game" style="margin-top:10px;">Save Game</button>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="cyber-btn" id="btn-save-game" data-testid="btn-save-game" style="flex:1;">Save Game</button>
+                        <button class="cyber-btn" id="btn-load-game" data-testid="btn-load-game" style="flex:1;">Load Game</button>
+                    </div>
                     <button class="cyber-btn" id="btn-close-menu" data-testid="btn-close-menu" style="margin-top:10px;">[ESC] Close Menu</button>
                 </div>
             </div>
@@ -45,33 +50,36 @@ export class MenuScene {
 
     start() {
         this.selectedCharacterIndex = 0;
+        this.saveMode = false;
         this.updateUI();
 
         document.getElementById('tab-consumables').onclick = () => {
             this.activeTab = 'consumables';
+            this.saveMode = false;
             this.updateUI();
         };
         document.getElementById('tab-gear').onclick = () => {
             this.activeTab = 'gear';
+            this.saveMode = false;
+            this.updateUI();
+        };
+        document.getElementById('tab-materials').onclick = () => {
+            this.activeTab = 'materials';
+            this.saveMode = false;
             this.updateUI();
         };
         document.getElementById('tab-skills').onclick = () => {
             this.activeTab = 'skills';
+            this.saveMode = false;
             this.updateUI();
         };
         document.getElementById('btn-save-game').onclick = () => {
-            if (gameState.save()) {
-                audio.playWinSound();
-                const saveBtn = document.getElementById('btn-save-game');
-                saveBtn.innerText = 'Game Saved!';
-                saveBtn.style.borderColor = 'var(--neon-green)';
-                saveBtn.style.color = 'var(--neon-green)';
-                setTimeout(() => {
-                    saveBtn.innerText = 'Save Game';
-                    saveBtn.style.borderColor = '';
-                    saveBtn.style.color = '';
-                }, 2000);
-            }
+            this.saveMode = true;
+            this.renderSaveSlots('save');
+        };
+        document.getElementById('btn-load-game').onclick = () => {
+            this.saveMode = true;
+            this.renderSaveSlots('load');
         };
         document.getElementById('btn-close-menu').onclick = () => {
             sceneManager.toggleMenu();
@@ -115,7 +123,99 @@ export class MenuScene {
         this.updateUI();
     }
 
+    renderSaveSlots(mode) {
+        const container = document.getElementById('menu-inventory-container');
+        const label = mode === 'save' ? 'SELECT SAVE SLOT' : 'SELECT LOAD SLOT';
+        let html = `<h3 style="margin-top:0; color:var(--neon-blue); text-align:center;">${label}</h3>`;
+
+        for (let i = 0; i < 3; i++) {
+            const info = gameState.getSaveInfo(i);
+            if (info && info.exists) {
+                const date = new Date(info.savedAt).toLocaleString();
+                const levels = info.partyLevels.map(p => `${p.name} Lv.${p.level}`).join(', ');
+                html += `
+                    <div style="border:1px solid var(--neon-green); padding:10px; margin-bottom:8px; background:rgba(0,50,0,0.2);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-size:14px; color:var(--neon-green);"><strong>Slot ${i + 1}</strong></div>
+                                <div style="font-size:11px; color:#aaa;">${date}</div>
+                                <div style="font-size:12px;">${levels}</div>
+                                <div style="font-size:12px; color:yellow;">Cr: ${info.credits} | ${info.location}</div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:5px;">
+                                ${mode === 'save' ? `<button class="cyber-btn" style="font-size:11px; padding:4px 8px; border-color:var(--neon-green); color:var(--neon-green);" onclick="document.dispatchEvent(new CustomEvent('menu-save-slot', {detail: ${i}}))">OVERWRITE</button>` : ''}
+                                ${mode === 'load' ? `<button class="cyber-btn" style="font-size:11px; padding:4px 8px; border-color:var(--neon-blue); color:var(--neon-blue);" onclick="document.dispatchEvent(new CustomEvent('menu-load-slot', {detail: ${i}}))">LOAD</button>` : ''}
+                                <button class="cyber-btn" style="font-size:11px; padding:4px 8px; border-color:red; color:red;" onclick="document.dispatchEvent(new CustomEvent('menu-delete-slot', {detail: ${i}}))">DEL</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="border:1px solid #333; padding:15px; margin-bottom:8px; text-align:center; color:#555;">
+                        <div style="font-size:14px;"><strong>Slot ${i + 1}</strong></div>
+                        <div style="font-size:12px;">Empty</div>
+                        ${mode === 'save' ? `<button class="cyber-btn" style="font-size:11px; padding:4px 8px; margin-top:5px;" onclick="document.dispatchEvent(new CustomEvent('menu-save-slot', {detail: ${i}}))">SAVE HERE</button>` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        html += `<button class="cyber-btn" style="margin-top:10px;" onclick="document.dispatchEvent(new CustomEvent('menu-cancel-save'))">Back</button>`;
+        container.innerHTML = html;
+
+        const setupHook = (evtName, handler) => {
+            const h = (e) => handler(e.detail);
+            if(!this[`_${evtName}`]) {
+                this[`_${evtName}`] = h;
+                document.addEventListener(evtName, h);
+            } else {
+                document.removeEventListener(evtName, this[`_${evtName}`]);
+                this[`_${evtName}`] = h;
+                document.addEventListener(evtName, h);
+            }
+        };
+
+        setupHook('menu-save-slot', (slot) => {
+            if (gameState.save(slot)) {
+                audio.playWinSound();
+                this.renderSaveSlots('save');
+                const existing = container.querySelector('.save-success');
+                if (existing) existing.remove();
+                const msg = document.createElement('div');
+                msg.className = 'save-success';
+                msg.style.cssText = 'text-align:center; color:var(--neon-green); padding:10px; font-size:14px;';
+                msg.innerText = 'Game Saved!';
+                container.prepend(msg);
+                setTimeout(() => msg.remove(), 2000);
+            }
+        });
+
+        setupHook('menu-load-slot', (slot) => {
+            if (gameState.load(slot)) {
+                audio.playWinSound();
+                sceneManager.toggleMenu();
+                sceneManager.changeScene('town');
+            }
+        });
+
+        setupHook('menu-delete-slot', (slot) => {
+            if (confirm(`Delete save slot ${slot + 1}? This cannot be undone.`)) {
+                gameState.deleteSave(slot);
+                audio.playBumpSound();
+                this.renderSaveSlots(mode);
+            }
+        });
+
+        setupHook('menu-cancel-save', () => {
+            this.saveMode = false;
+            this.updateUI();
+        });
+    }
+
     updateUI() {
+        if (this.saveMode) return;
+
         document.getElementById('menu-credits').innerText = gameState.credits;
         
         const mapHTML = gameState.party.map((c, i) => `
@@ -134,7 +234,7 @@ export class MenuScene {
                     <div style="flex:1;">
                         <div>ATK: ${c.attack} <span style="color:#666;">(Base:${c.baseAttack})</span></div>
                         <div>DEF: ${c.defense} <span style="color:#666;">(Base:${c.baseDefense})</span></div>
-                        <div>SPD: ${c.speed}</div>
+                        <div>SPD: ${c.speed} <span style="color:#666;">(Base:${c.baseSpeed || c.speed})</span></div>
                     </div>
                 </div>
 
@@ -161,6 +261,8 @@ export class MenuScene {
             document.getElementById('tab-consumables').style.color = 'black';
             document.getElementById('tab-gear').style.backgroundColor = 'transparent';
             document.getElementById('tab-gear').style.color = 'var(--neon-blue)';
+            document.getElementById('tab-materials').style.backgroundColor = 'transparent';
+            document.getElementById('tab-materials').style.color = 'var(--neon-blue)';
             document.getElementById('tab-skills').style.backgroundColor = 'transparent';
             document.getElementById('tab-skills').style.color = 'var(--neon-blue)';
 
@@ -169,11 +271,12 @@ export class MenuScene {
             }
 
             gameState.inventory.consumables.forEach(item => {
+                const typeLabel = item.heal ? `HP+${item.heal}` : (item.mpHeal ? `MP+${item.mpHeal}` : `DMG+${item.damage}`);
                 invCont.innerHTML += `
                     <div style="border:1px solid #333; padding:10px; display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <div><strong>${item.name}</strong></div>
-                            <div style="font-size:12px; color:#aaa;">Qty: ${item.amount}</div>
+                            <div style="font-size:12px; color:#aaa;">Qty: ${item.amount} (${typeLabel})</div>
                         </div>
                         <div style="font-size:12px; color:#555;">(In-Battle Only)</div>
                     </div>
@@ -184,6 +287,8 @@ export class MenuScene {
             document.getElementById('tab-gear').style.color = 'black';
             document.getElementById('tab-consumables').style.backgroundColor = 'transparent';
             document.getElementById('tab-consumables').style.color = 'var(--neon-blue)';
+            document.getElementById('tab-materials').style.backgroundColor = 'transparent';
+            document.getElementById('tab-materials').style.color = 'var(--neon-blue)';
             document.getElementById('tab-skills').style.backgroundColor = 'transparent';
             document.getElementById('tab-skills').style.color = 'var(--neon-blue)';
 
@@ -192,13 +297,42 @@ export class MenuScene {
             }
 
             gameState.inventory.gear.forEach((item, idx) => {
+                const isWeapon = item.id.startsWith('wpn');
+                const bonusLabel = isWeapon ? `ATK+${item.bonus}` : `DEF+${item.bonus}`;
+                const speedLabel = item.speedBonus ? ` SPD${item.speedBonus > 0 ? '+' : ''}${item.speedBonus}` : '';
                 invCont.innerHTML += `
                     <div style="border:1px solid #444; padding:10px; display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <div style="font-size:16px;"><strong>${item.name}</strong></div>
-                            <div style="font-size:12px; color:var(--neon-pink);">${item.type.toUpperCase()} (+${item.bonus})</div>
+                            <div style="font-size:12px; color:var(--neon-pink);">${item.type.toUpperCase()} (${bonusLabel}${speedLabel})</div>
+                            ${item.description ? `<div style="font-size:11px; color:#666; font-style:italic;">${item.description}</div>` : ''}
                         </div>
                         <button class="cyber-btn" style="font-size:12px; padding:5px 10px;" onclick="document.dispatchEvent(new CustomEvent('menu-equip', {detail: ${idx}}))">EQUIP</button>
+                    </div>
+                `;
+            });
+        } else if (this.activeTab === 'materials') {
+            document.getElementById('tab-materials').style.backgroundColor = 'var(--neon-blue)';
+            document.getElementById('tab-materials').style.color = 'black';
+            document.getElementById('tab-consumables').style.backgroundColor = 'transparent';
+            document.getElementById('tab-consumables').style.color = 'var(--neon-blue)';
+            document.getElementById('tab-gear').style.backgroundColor = 'transparent';
+            document.getElementById('tab-gear').style.color = 'var(--neon-blue)';
+            document.getElementById('tab-skills').style.backgroundColor = 'transparent';
+            document.getElementById('tab-skills').style.color = 'var(--neon-blue)';
+            
+            if (!gameState.inventory.materials || gameState.inventory.materials.length === 0) {
+                invCont.innerHTML = `<div style="text-align:center; color:#555; margin-top:20px;">No materials collected. Defeat enemies to find drops!</div>`;
+            }
+            
+            gameState.inventory.materials.forEach(mat => {
+                invCont.innerHTML += `
+                    <div style="border:1px solid #333; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div><strong>${mat.name}</strong></div>
+                            <div style="font-size:12px; color:#aaa;">Qty: ${mat.amount}</div>
+                        </div>
+                        <div style="font-size:12px; color:#555;">(Crafting Material)</div>
                     </div>
                 `;
             });
@@ -209,6 +343,8 @@ export class MenuScene {
             document.getElementById('tab-consumables').style.color = 'var(--neon-blue)';
             document.getElementById('tab-gear').style.backgroundColor = 'transparent';
             document.getElementById('tab-gear').style.color = 'var(--neon-blue)';
+            document.getElementById('tab-materials').style.backgroundColor = 'transparent';
+            document.getElementById('tab-materials').style.color = 'var(--neon-blue)';
             
             const char = gameState.party[this.selectedCharacterIndex];
             invCont.innerHTML = `<h3 style="margin-top:0; color:var(--neon-blue); text-align:center;">${char.name}'s Skill Tree</h3>`;

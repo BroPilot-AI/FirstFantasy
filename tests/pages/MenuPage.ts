@@ -8,8 +8,10 @@ export class MenuPage {
   readonly creditsDisplay: Locator;
   readonly btnClose: Locator;
   readonly btnSave: Locator;
+  readonly btnLoad: Locator;
   readonly tabConsumables: Locator;
   readonly tabGear: Locator;
+  readonly tabMaterials: Locator;
   readonly tabSkills: Locator;
 
   constructor(page: Page) {
@@ -21,8 +23,10 @@ export class MenuPage {
     this.creditsDisplay = activeMenu.locator('[data-testid="menu-credits"]');
     this.btnClose = activeMenu.locator('[data-testid="btn-close-menu"]');
     this.btnSave = activeMenu.locator('[data-testid="btn-save-game"]');
+    this.btnLoad = activeMenu.locator('[data-testid="btn-load-game"]');
     this.tabConsumables = activeMenu.locator('[data-testid="tab-consumables"]');
     this.tabGear = activeMenu.locator('[data-testid="tab-gear"]');
+    this.tabMaterials = activeMenu.locator('[data-testid="tab-materials"]');
     this.tabSkills = activeMenu.locator('[data-testid="tab-skills"]');
   }
 
@@ -46,6 +50,11 @@ export class MenuPage {
 
   async saveGame() {
     await this.btnSave.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async loadGame() {
+    await this.btnLoad.click();
     await this.page.waitForTimeout(500);
   }
 }

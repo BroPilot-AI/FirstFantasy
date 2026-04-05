@@ -3,6 +3,16 @@ import { audio } from './audioManager.js';
 import { gameState } from './gameState.js';
 import { InputManager } from './inputManager.js';
 
+window.__testHelpers = {
+    triggerBattle: (isBoss = false) => {
+        if (window.__sm && window.__sm.changeScene) {
+            window.__sm.changeScene('battle', { isBoss });
+        }
+    },
+    getSceneManager: () => window.__sm,
+    getGameState: () => window.__gs
+};
+
 window.addEventListener('DOMContentLoaded', () => {
     const overlay = document.getElementById('overlay');
     const overlayTitle = document.getElementById('overlay-title');
@@ -11,7 +21,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     overlayTitle.innerText = "CyberTaco RPG";
     overlayText.innerText = "The Giant Orange Taco threatens the neon city! Gather your party.";
-    overlayBtn.innerText = "START GAME";
+    overlayBtn.innerText = "NEW GAME";
     overlay.classList.add('active');
 
     InputManager.init();
@@ -55,6 +65,8 @@ window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => sceneManager.changeScene('battle', { isBoss: true }), 500);
         }
         
+        window.__sm = sceneManager;
+        window.__gs = gameState;
         window.__testHelpers = {
             triggerBattle: (isBoss = false) => {
                 sceneManager.changeScene('battle', { isBoss });
@@ -66,10 +78,10 @@ window.addEventListener('DOMContentLoaded', () => {
         overlayBtn.removeEventListener('click', startFn);
     };
 
-    const loadFn = () => {
+    const loadFn = (slot) => {
         audio.init();
         overlay.classList.remove('active');
-        if (gameState.load()) {
+        if (gameState.load(slot)) {
             sceneManager.init();
             sceneManager.changeScene('town');
         } else {
@@ -77,18 +89,38 @@ window.addEventListener('DOMContentLoaded', () => {
             sceneManager.init();
             sceneManager.changeScene('town');
         }
-        overlayBtn.removeEventListener('click', loadFn);
+        overlayBtn.removeEventListener('click', () => loadFn(0));
     };
 
     overlayBtn.addEventListener('click', startFn);
 
-    if (gameState.hasSave()) {
-        overlayText.innerText += "\n\nA save file was found.";
-        const loadBtn = document.createElement('button');
-        loadBtn.className = 'cyber-btn';
-        loadBtn.innerText = 'LOAD GAME';
-        loadBtn.style.marginTop = '10px';
-        overlay.appendChild(loadBtn);
-        loadBtn.addEventListener('click', loadFn);
+    if (gameState.hasAnySave()) {
+        overlayText.innerText += "\n\nSave files found. Choose an option:";
+        
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = 'display:flex; flex-direction:column; gap:8px; margin-top:10px;';
+        
+        for (let i = 0; i < 3; i++) {
+            const info = gameState.getSaveInfo(i);
+            if (info && info.exists) {
+                const date = new Date(info.savedAt).toLocaleString();
+                const levels = info.partyLevels.map(p => `Lv.${p.level}`).join('/');
+                const btn = document.createElement('button');
+                btn.className = 'cyber-btn';
+                btn.style.cssText = 'font-size:12px; padding:8px;';
+                btn.innerText = `LOAD SLOT ${i+1} | ${info.location} | ${levels} | Cr:${info.credits} | ${date}`;
+                btn.addEventListener('click', () => loadFn(i));
+                buttonContainer.appendChild(btn);
+            }
+        }
+        
+        const newGameBtn = document.createElement('button');
+        newGameBtn.className = 'cyber-btn';
+        newGameBtn.innerText = 'NEW GAME';
+        newGameBtn.style.cssText = 'margin-top:5px;';
+        newGameBtn.addEventListener('click', startFn);
+        buttonContainer.appendChild(newGameBtn);
+        
+        overlay.appendChild(buttonContainer);
     }
 });

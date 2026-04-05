@@ -40,6 +40,7 @@ export class BattlePage {
   }
 
   async waitForBattleStart() {
+    await this.page.waitForSelector('#battle-scene.scene.active', { state: 'visible', timeout: 10000 });
     await this.battleTop.waitFor({ state: 'visible', timeout: 10000 });
     await this.mainMenu.waitFor({ state: 'visible', timeout: 5000 });
   }

@@ -1,6 +1,7 @@
 import { sceneManager } from '../sceneManager.js';
 import { gameState } from '../gameState.js';
 import { audio } from '../audioManager.js';
+import { getAllShopGear } from '../entities/gear.js';
 
 export class ShopScene {
     constructor() {
@@ -8,9 +9,10 @@ export class ShopScene {
         this.params = null;
         this.inventory = [
             { id: 'potion', name: 'Cyber-Potion', type:'consumable', cost: 50 },
+            { id: 'hi_potion', name: 'Hi-Cyber-Potion', type:'consumable', cost: 120 },
             { id: 'emp', name: 'Emp-Grenade', type:'consumable', cost: 100 },
-            { id: 'wpn_laser', name: 'Laser Sword', type:'weapon', cost: 300, bonus: 15 },
-            { id: 'arm_vest', name: 'Kevlar Vest', type:'armor', cost: 250, bonus: 10 }
+            { id: 'ether', name: 'Data-Ether', type:'consumable', cost: 80 },
+            ...getAllShopGear().map(g => ({ ...g, type: g.bonus && !g.speedBonus ? (g.id.startsWith('wpn') ? 'weapon' : 'armor') : (g.id.startsWith('wpn') ? 'weapon' : 'armor') }))
         ];
     }
 
@@ -24,8 +26,13 @@ export class ShopScene {
                     <p id="shop-dialogue" data-testid="shop-dialogue" style="text-align:center; font-style:italic;">"Welcome to my node! We've got gear and supplies. Take a look!"</p>
                 </div>
                 <div style="flex:1.5; padding-left:20px; display:flex; flex-direction:column; justify-content:flex-start;">
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <button class="cyber-btn" id="shop-tab-items" data-testid="shop-tab-items" style="flex:1; font-size:12px;">Items</button>
+                        <button class="cyber-btn" id="shop-tab-weapons" data-testid="shop-tab-weapons" style="flex:1; font-size:12px;">Weapons</button>
+                        <button class="cyber-btn" id="shop-tab-armor" data-testid="shop-tab-armor" style="flex:1; font-size:12px;">Armor</button>
+                    </div>
                     <div style="font-size:24px; color:var(--neon-blue); margin-bottom:20px; display:flex; justify-content:space-between;">
-                        <span>Shop Inventory</span>
+                        <span id="shop-category-label">Shop Inventory</span>
                         <span>Cr: <span id="shop-credits" data-testid="shop-credits">0</span></span>
                     </div>
                     <div id="shop-items" data-testid="shop-items" style="display:flex; flex-direction:column; gap:10px; overflow-y:auto; flex:1; padding-right:10px;">
@@ -38,8 +45,21 @@ export class ShopScene {
 
     start(params) {
         this.params = params;
+        this.activeTab = 'items';
         this.updateUI();
 
+        document.getElementById('shop-tab-items').onclick = () => {
+            this.activeTab = 'items';
+            this.updateUI();
+        };
+        document.getElementById('shop-tab-weapons').onclick = () => {
+            this.activeTab = 'weapons';
+            this.updateUI();
+        };
+        document.getElementById('shop-tab-armor').onclick = () => {
+            this.activeTab = 'armor';
+            this.updateUI();
+        };
         document.getElementById('btn-leave-shop').onclick = () => {
             sceneManager.changeScene('town', { pos: this.params.returnPos, returningFromInterior: true });
         };
@@ -75,10 +95,47 @@ export class ShopScene {
 
     updateUI() {
         document.getElementById('shop-credits').innerText = gameState.credits;
+        
+        const tabItems = document.getElementById('shop-tab-items');
+        const tabWeapons = document.getElementById('shop-tab-weapons');
+        const tabArmor = document.getElementById('shop-tab-armor');
+        const label = document.getElementById('shop-category-label');
+        
+        const resetTabs = () => {
+            tabItems.style.backgroundColor = 'transparent';
+            tabItems.style.color = 'var(--neon-blue)';
+            tabWeapons.style.backgroundColor = 'transparent';
+            tabWeapons.style.color = 'var(--neon-blue)';
+            tabArmor.style.backgroundColor = 'transparent';
+            tabArmor.style.color = 'var(--neon-blue)';
+        };
+
+        if (this.activeTab === 'items') {
+            resetTabs();
+            tabItems.style.backgroundColor = 'var(--neon-blue)';
+            tabItems.style.color = 'black';
+            label.innerText = 'Consumables';
+            this.renderItems(this.inventory.filter(i => i.type === 'consumable'));
+        } else if (this.activeTab === 'weapons') {
+            resetTabs();
+            tabWeapons.style.backgroundColor = 'var(--neon-blue)';
+            tabWeapons.style.color = 'black';
+            label.innerText = 'Weapons';
+            this.renderItems(this.inventory.filter(i => i.type === 'weapon'));
+        } else if (this.activeTab === 'armor') {
+            resetTabs();
+            tabArmor.style.backgroundColor = 'var(--neon-blue)';
+            tabArmor.style.color = 'black';
+            label.innerText = 'Armor';
+            this.renderItems(this.inventory.filter(i => i.type === 'armor'));
+        }
+    }
+
+    renderItems(items) {
         const container = document.getElementById('shop-items');
         container.innerHTML = '';
         
-        this.inventory.forEach(item => {
+        items.forEach(item => {
             const div = document.createElement('div');
             div.style.display = 'flex';
             div.style.justifyContent = 'space-between';
@@ -88,9 +145,15 @@ export class ShopScene {
             div.style.backgroundColor = 'rgba(0,0,0,0.5)';
             
             const info = document.createElement('div');
+            let bonusText = '';
+            if (item.bonus) {
+                bonusText = item.id.startsWith('wpn') ? `ATK+${item.bonus}` : `DEF+${item.bonus}`;
+                if (item.speedBonus) bonusText += ` SPD${item.speedBonus > 0 ? '+' : ''}${item.speedBonus}`;
+            }
             info.innerHTML = `
                 <div style="font-size:16px;"><strong>${item.name}</strong></div>
-                <div style="font-size:12px; color:#aaa;">${item.type.toUpperCase()}${item.bonus ? ` (+${item.bonus})` : ''}</div>
+                <div style="font-size:12px; color:#aaa;">${item.type.toUpperCase()}${bonusText ? ` (${bonusText})` : ''}</div>
+                ${item.description ? `<div style="font-size:11px; color:#666; font-style:italic;">${item.description}</div>` : ''}
             `;
             
             const btn = document.createElement('button');

@@ -97,6 +97,28 @@ export class BattleScene {
             });
             
             this.logMessage(`Victory! Gained ${totalXp} XP and ${totalCreds} Credits!`, "heal");
+            
+            // Process gear drops from enemies
+            const drops = [];
+            this.enemies.forEach(enemy => {
+                if (enemy.dropTable) {
+                    enemy.dropTable.forEach(drop => {
+                        if (Math.random() < drop.chance) {
+                            drops.push(drop);
+                            let existing = gameState.inventory.materials.find(m => m.id === drop.id);
+                            if (existing) {
+                                existing.amount++;
+                            } else {
+                                gameState.inventory.materials.push({ id: drop.id, name: drop.name, type: 'material', amount: 1 });
+                            }
+                        }
+                    });
+                }
+            });
+            if (drops.length > 0) {
+                drops.forEach(d => this.logMessage(`Found: ${d.name}!`, "critical"));
+            }
+            
             if (leveledUp) this.logMessage(`The party Leveled Up!`, "critical");
             this.logMessage(`Party recovers 15% HP and MP.`, "heal");
             
@@ -356,6 +378,12 @@ export class BattleScene {
             const alivePlayers = gameState.party.filter(p => p.hp > 0);
             const target = alivePlayers.find(p => p.name === playerUnit.name) || alivePlayers[0];
             this.healUnit(target, item.heal);
+            audio.playMagicSound();
+        } else if (item.mpHeal) {
+            const alivePlayers = gameState.party.filter(p => p.hp > 0);
+            const target = alivePlayers.find(p => p.name === playerUnit.name) || alivePlayers[0];
+            target.mp = Math.min(target.maxMp, target.mp + item.mpHeal);
+            this.logMessage(`${target.name} recovers ${item.mpHeal} MP!`, "heal");
             audio.playMagicSound();
         } else if (item.damage) {
             const aliveEnemies = this.enemies.filter(e => e.hp > 0);

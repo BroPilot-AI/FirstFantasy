@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "serve": "npx serve . -p 3000"
+  },
   "dependencies": {
     "jimp": "^1.6.0"
   },
