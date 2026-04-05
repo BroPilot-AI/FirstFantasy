@@ -73,6 +73,7 @@ class SceneManager {
             this.currentScene = nextScene;
             const el = document.getElementById(`${sceneName}-scene`);
             el.classList.add('active');
+            nextScene.init(el);
             nextScene.start(params);
         }
     }

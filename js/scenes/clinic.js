@@ -55,7 +55,6 @@ export class ClinicScene {
 
     stop() {
         if (this.el) this.el.innerHTML = '';
-        this.init(this.el);
     }
 
     updateUI() {

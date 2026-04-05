@@ -71,9 +71,7 @@ export class BattleScene {
         if (log) log.innerHTML = '';
         this.resetMenus();
         audio.stopBGM();
-        // Clear the scene DOM to prevent duplicate elements on re-entry
         if (this.el) this.el.innerHTML = '';
-        this.init(this.el);
     }
 
     getAllUnits() {

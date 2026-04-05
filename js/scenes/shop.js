@@ -47,7 +47,6 @@ export class ShopScene {
 
     stop() {
         if (this.el) this.el.innerHTML = '';
-        this.init(this.el);
     }
 
     buyItem(item) {
